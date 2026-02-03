@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Mis Clientes</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+    input, button { padding: 8px; margin: 5px; box-sizing: border-box; }
+    .cliente { border: 1px solid #eee; padding: 12px; margin: 10px 0; border-radius: 4px; }
+    #app { display: none; }
+  </style>
+</head>
+<body>
+  <div id="loading">Cargando...</div>
+  <div id="app">
+    <h1>Mis Clientes</h1>
+    <form id="cliente-form">
+      <input type="text" id="nombre" placeholder="Nombre" required>
+      <input type="email" id="email" placeholder="Email">
+      <input type="tel" id="telefono" placeholder="Teléfono">
+      <button type="submit">Añadir cliente</button>
+    </form>
+    <div id="lista"></div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    
+    const supabase = createClient(
+      'https://kainsfkvgembznyhkrvd.supabase.co',
+      'sb_publishable_uSMsMGIEkZykEDRfHUK6pQ_SXChdYbz'
+    );
+
+    // Verificar si el usuario está logueado
+    const {  { user } } = await supabase.auth.getUser();
+    if (!user) {
+      window.location.href = '/login.html';
+    } else {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      cargarClientes(user.id);
+    }
+
+    async function cargarClientes(uid) {
+      const { data, error } = await supabase
+        .from('clientes')
+        .select('nombre, email, telefono')
+        .eq('user_id', uid)
+        .order('nombre', { ascending: true });
+      
+      if (error) console.error(error);
+      else {
+        const lista = document.getElementById('lista');
+        if (data.length === 0) {
+          lista.innerHTML = '<p>No tienes clientes aún.</p>';
+        } else {
+          lista.innerHTML = data.map(c => `
+            <div class="cliente">
+              <strong>${c.nombre}</strong><br>
+              ${c.email ? c.email + ' | ' : ''}${c.telefono || ''}
+            </div>
+          `).join('');
+        }
+      }
+    }
+
+    document.getElementById('cliente-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const nombre = document.getElementById('nombre').value;
+      const email = document.getElementById('email').value;
+      const telefono = document.getElementById('telefono').value;
+
+      const { error } = await supabase.from('clientes').insert({
+        nombre, email, telefono, user_id: user.id
+      });
+
+      if (error) alert('Error: ' + error.message);
+      else {
+        document.getElementById('cliente-form').reset();
+        cargarClientes(user.id);
+      }
+    });
+  </script>
+</body>
+</html>
