@@ -27,19 +27,34 @@
       'sb_publishable_uSMsMGIEkZykEDRfHUK6pQ_SXChdYbz'
     );
 
+    // Obtener el usuario actual
+    const { data: authData } = await supabase.auth.getUser();
+    const userId = authData.user?.id;
+
+    if (!userId) {
+      alert('No estás autenticado. Redirigiendo...');
+      window.location.href = '/login.html';
+    }
+
     async function cargarClientes() {
-      const { data, error } = await supabase.from('clientes').select('*');
+      const { data, error } = await supabase
+        .from('clientes')
+        .select('nombre, email, telefono')
+        .eq('user_id', userId);
+      
       if (error) {
+        console.error('Error al cargar:', error);
         document.getElementById('lista').innerHTML = '<p>Error al cargar clientes.</p>';
-        console.error(error);
       } else {
-        if (data.length === 0) {
-          document.getElementById('lista').innerHTML = '<p>No tienes clientes aún.</p>';
-        } else {
-          document.getElementById('lista').innerHTML = data.map(c => 
-            `<div class="cliente"><strong>${c.nombre}</strong><br>${c.email || ''} ${c.telefono || ''}</div>`
-          ).join('');
-        }
+        document.getElementById('lista').innerHTML = 
+          data.length === 0 
+            ? '<p>No tienes clientes aún.</p>' 
+            : data.map(c => `
+                <div class="cliente">
+                  <strong>${c.nombre}</strong><br>
+                  ${c.email ? c.email + ' | ' : ''}${c.telefono || ''}
+                </div>
+              `).join('');
       }
     }
 
@@ -49,8 +64,13 @@
       const email = document.getElementById('email').value;
       const telefono = document.getElementById('telefono').value;
 
-      const { error } = await supabase.from('clientes').insert({ nombre, email, telefono });
-      
+      const { error } = await supabase.from('clientes').insert({
+        nombre,
+        email,
+        telefono,
+        user_id: userId  // ← ¡esto es clave!
+      });
+
       if (error) {
         alert('Error: ' + error.message);
       } else {
