@@ -6,18 +6,32 @@
   <style>
     body { font-family: sans-serif; padding: 40px; max-width: 400px; margin: 0 auto; }
     input { width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box; }
-    button { width: 100%; padding: 10px; background: #007bff; color: white; border: none; cursor: pointer; }
-    a { display: block; margin-top: 15px; color: #007bff; text-align: center; }
+    button { width: 100%; padding: 10px; background: #007bff; color: white; border: none; cursor: pointer; margin-top: 5px; }
+    .form-group { display: none; }
+    a { display: block; margin-top: 15px; color: #007bff; text-align: center; text-decoration: underline; cursor: pointer; }
   </style>
 </head>
 <body>
   <h2>Iniciar sesión</h2>
+  
+  <!-- Formulario de login -->
   <form id="login-form">
     <input type="email" id="email" placeholder="Email" required>
     <input type="password" id="password" placeholder="Contraseña" required>
     <button type="submit">Entrar</button>
   </form>
-  <a href="#" onclick="registro()">¿No tienes cuenta? Regístrate</a>
+
+  <!-- Enlace para mostrar registro -->
+  <a id="toggle-registro">¿No tienes cuenta? Regístrate</a>
+
+  <!-- Formulario de registro (oculto al inicio) -->
+  <div id="registro-form" class="form-group">
+    <h3>Crear cuenta</h3>
+    <input type="email" id="reg-email" placeholder="Email" required>
+    <input type="password" id="reg-password" placeholder="Contraseña (mínimo 6 caracteres)" required>
+    <button type="button" onclick="registroReal()">Registrarse</button>
+    <button type="button" onclick="document.getElementById('registro-form').style.display='none'; document.getElementById('toggle-registro').style.display='block';">Cancelar</button>
+  </div>
 
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
@@ -27,6 +41,7 @@
       'sb_publishable_uSMsMGIEkZykEDRfHUK6pQ_SXChdYbz'
     );
 
+    // Login
     document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = document.getElementById('email').value;
@@ -36,13 +51,27 @@
       else window.location.href = '/dashboard/clientes.html';
     });
 
-    async function registro() {
-      const email = prompt('Tu email:');
-      const password = prompt('Contraseña (mínimo 6 caracteres):');
-      if (!email || !password) return;
+    // Mostrar formulario de registro
+    document.getElementById('toggle-registro').addEventListener('click', () => {
+      document.getElementById('registro-form').style.display = 'block';
+      document.getElementById('toggle-registro').style.display = 'none';
+    });
+
+    // Registro real
+    async function registroReal() {
+      const email = document.getElementById('reg-email').value;
+      const password = document.getElementById('reg-password').value;
+      if (!email || !password) return alert('Completa todos los campos');
+      
       const { error } = await supabase.auth.signUp({ email, password });
       if (error) alert('Error: ' + error.message);
-      else alert('Registro enviado. Revisa tu email para confirmar.');
+      else {
+        alert('¡Registro exitoso! Ya puedes iniciar sesión.');
+        document.getElementById('registro-form').style.display = 'none';
+        document.getElementById('toggle-registro').style.display = 'block';
+        document.getElementById('reg-email').value = '';
+        document.getElementById('reg-password').value = '';
+      }
     }
   </script>
 </body>
