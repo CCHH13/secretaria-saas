@@ -43,7 +43,6 @@
       background: #eff6ff;
       color: #3b82f6;
     }
-    .nav-item i { font-style: normal; } /* placeholder for icons */
 
     /* Main content */
     .main {
@@ -92,7 +91,6 @@
       color: #0f172a;
     }
 
-    /* Responsive */
     @media (max-width: 768px) {
       body { flex-direction: column; }
       .sidebar { width: 100%; height: auto; }
@@ -115,7 +113,6 @@
 
   <!-- Área principal -->
   <main class="main">
-    <!-- Barra superior con módulos -->
     <header class="topbar">
       <h1 class="page-title" id="current-title">Mis Clientes</h1>
       <div class="modules">
@@ -125,10 +122,12 @@
       </div>
     </header>
 
-    <!-- Contenido dinámico -->
     <div class="content" id="content-area">
-      <!-- Aquí se carga el contenido -->
-      <p>Cargando...</p>
+      <div style="padding: 20px; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+        <h2>Mis Clientes</h2>
+        <p>Bienvenido a tu panel de control.</p>
+        <p><a href="/dashboard/ficha-cliente-moderna.html" target="_blank" style="color:#3b82f6; text-decoration:underline;">➕ Añadir nuevo cliente</a></p>
+      </div>
     </div>
   </main>
 
@@ -140,58 +139,28 @@
       'sb_publishable_uSMsMGIEkZykEDRfHUK6pQ_SXChdYbz'
     );
 
-    // Verificar autenticación
+    // Verificar si está logueado
     const { data } = await supabase.auth.getUser();
     if (!data.user) {
       window.location.href = '/login.html';
     }
 
-    // Estado actual
-    let currentPage = 'clientes';
-
-    // Navegación lateral
+    // Navegación simple (por ahora abre en nueva pestaña)
     document.querySelectorAll('.nav-item').forEach(item => {
       item.addEventListener('click', () => {
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        item.classList.add('active');
-        currentPage = item.dataset.page;
-        loadPage(currentPage);
+        const page = item.dataset.page;
+        let url = '';
+        switch(page) {
+          case 'clientes':
+            url = '/dashboard/ficha-cliente-moderna.html';
+            break;
+          default:
+            alert('Sección en desarrollo: ' + page);
+            return;
+        }
+        window.open(url, '_blank');
       });
     });
-
-    // Módulos superiores (opcional: puedes usarlos para filtrar)
-    document.querySelectorAll('.module-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.module-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        // Puedes usar esto para cambiar comportamiento por módulo
-      });
-    });
-
-    // Cargar página
-    async function loadPage(page) {
-      const titleMap = {
-        'clientes': 'Mis Clientes',
-        'agenda': 'Agenda',
-        'proveedores': 'Proveedores',
-        'facturas': 'Facturas',
-        'tareas': 'Tareas Pendientes'
-      };
-      document.getElementById('current-title').textContent = titleMap[page] || page;
-
-      // Aquí cargarías contenido dinámico
-      // Por ahora, mostramos un mensaje
-      document.getElementById('content-area').innerHTML = `
-        <div style="padding: 20px; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-          <h2>${titleMap[page]}</h2>
-          <p>Esta sección está en desarrollo.</p>
-          <p><a href="/dashboard/ficha-cliente-moderna.html" target="_blank">👉 Abrir ficha completa en nueva pestaña</a></p>
-        </div>
-      `;
-    }
-
-    // Cargar página inicial
-    loadPage(currentPage);
   </script>
 </body>
 </html>
