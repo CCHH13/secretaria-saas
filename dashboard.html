@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Secretaría Dinámica - Panel</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: white;
+      border-right: 1px solid #e2e8f0;
+      padding: 20px 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .logo {
+      padding: 0 20px 20px;
+      font-size: 18px;
+      font-weight: 700;
+      color: #3b82f6;
+    }
+    .nav-item {
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #475569;
+      text-decoration: none;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .nav-item:hover, .nav-item.active {
+      background: #eff6ff;
+      color: #3b82f6;
+    }
+    .nav-item i { font-style: normal; } /* placeholder for icons */
+
+    /* Main content */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top bar */
+    .topbar {
+      height: 60px;
+      background: white;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      justify-content: space-between;
+    }
+    .modules {
+      display: flex;
+      gap: 20px;
+    }
+    .module-btn {
+      background: none;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-weight: 500;
+      color: #475569;
+      cursor: pointer;
+    }
+    .module-btn.active, .module-btn:hover {
+      background: #3b82f6;
+      color: white;
+    }
+
+    /* Content area */
+    .content {
+      padding: 24px;
+      flex: 1;
+      overflow: auto;
+    }
+    .page-title {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #0f172a;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      body { flex-direction: column; }
+      .sidebar { width: 100%; height: auto; }
+      .topbar { height: auto; flex-wrap: wrap; padding: 12px; }
+      .modules { width: 100%; overflow-x: auto; padding: 8px 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar izquierdo -->
+  <aside class="sidebar">
+    <div class="logo">Secretaría Dinámica</div>
+    <div class="nav-item active" data-page="clientes">👤 Clientes</div>
+    <div class="nav-item" data-page="agenda">📅 Agenda</div>
+    <div class="nav-item" data-page="proveedores">🏢 Proveedores</div>
+    <div class="nav-item" data-page="facturas">📄 Facturas</div>
+    <div class="nav-item" data-page="tareas">✅ Tareas</div>
+  </aside>
+
+  <!-- Área principal -->
+  <main class="main">
+    <!-- Barra superior con módulos -->
+    <header class="topbar">
+      <h1 class="page-title" id="current-title">Mis Clientes</h1>
+      <div class="modules">
+        <button class="module-btn active" data-module="crm">CRM</button>
+        <button class="module-btn" data-module="erp">ERP</button>
+        <button class="module-btn" data-module="secretaria">Secretaría</button>
+      </div>
+    </header>
+
+    <!-- Contenido dinámico -->
+    <div class="content" id="content-area">
+      <!-- Aquí se carga el contenido -->
+      <p>Cargando...</p>
+    </div>
+  </main>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    
+    const supabase = createClient(
+      'https://kainsfkvgembznyhkrvd.supabase.co',
+      'sb_publishable_uSMsMGIEkZykEDRfHUK6pQ_SXChdYbz'
+    );
+
+    // Verificar autenticación
+    const { data } = await supabase.auth.getUser();
+    if (!data.user) {
+      window.location.href = '/login.html';
+    }
+
+    // Estado actual
+    let currentPage = 'clientes';
+
+    // Navegación lateral
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', () => {
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        currentPage = item.dataset.page;
+        loadPage(currentPage);
+      });
+    });
+
+    // Módulos superiores (opcional: puedes usarlos para filtrar)
+    document.querySelectorAll('.module-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.module-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        // Puedes usar esto para cambiar comportamiento por módulo
+      });
+    });
+
+    // Cargar página
+    async function loadPage(page) {
+      const titleMap = {
+        'clientes': 'Mis Clientes',
+        'agenda': 'Agenda',
+        'proveedores': 'Proveedores',
+        'facturas': 'Facturas',
+        'tareas': 'Tareas Pendientes'
+      };
+      document.getElementById('current-title').textContent = titleMap[page] || page;
+
+      // Aquí cargarías contenido dinámico
+      // Por ahora, mostramos un mensaje
+      document.getElementById('content-area').innerHTML = `
+        <div style="padding: 20px; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+          <h2>${titleMap[page]}</h2>
+          <p>Esta sección está en desarrollo.</p>
+          <p><a href="/dashboard/ficha-cliente-moderna.html" target="_blank">👉 Abrir ficha completa en nueva pestaña</a></p>
+        </div>
+      `;
+    }
+
+    // Cargar página inicial
+    loadPage(currentPage);
+  </script>
+</body>
+</html>
